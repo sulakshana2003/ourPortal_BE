@@ -7,6 +7,11 @@ const noteSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    portalCode: {
+      type: String,
+      required: true,
+      index: true,
+    },
     title: {
       type: String,
       required: [true, "Title is required"],

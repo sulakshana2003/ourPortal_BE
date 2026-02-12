@@ -34,6 +34,7 @@ export const uploadVoice = async (req, res) => {
     // Save to DB
     const voice = await Voice.create({
       userId: req.user.id,
+      portalCode: req.user.portalCode,
       url: publicUrl,
       title: title || "Untitled Voice Note",
       duration: duration ? Number(duration) : 0,
@@ -51,7 +52,12 @@ export const uploadVoice = async (req, res) => {
 // Get all voice notes
 export const getAllVoices = async (req, res) => {
   try {
-    const voices = await Voice.find()
+    const voices = await Voice.find({ 
+      $or: [
+        { portalCode: req.user.portalCode },
+        { userId: req.user.id, portalCode: { $exists: false } }
+      ]
+    })
       .populate("userId", "name avatar")
       .sort({ createdAt: -1 });
 
@@ -64,7 +70,10 @@ export const getAllVoices = async (req, res) => {
 // Delete a voice note
 export const deleteVoice = async (req, res) => {
   try {
-    const voice = await Voice.findById(req.params.id);
+    const voice = await Voice.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
     if (!voice) {
       return res.status(404).json({ message: "Voice note not found" });
     }

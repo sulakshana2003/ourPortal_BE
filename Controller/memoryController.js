@@ -27,6 +27,7 @@ export const createMemory = async (req, res) => {
 
     const memory = await Memory.create({
       userId: req.user.id,
+      portalCode: req.user.portalCode,
       title,
       description: description || "",
       date: date || Date.now(),
@@ -46,7 +47,12 @@ export const createMemory = async (req, res) => {
 // Get all memories
 export const getAllMemories = async (req, res) => {
   try {
-    const memories = await Memory.find()
+    const memories = await Memory.find({ 
+      $or: [
+        { portalCode: req.user.portalCode },
+        { userId: req.user.id, portalCode: { $exists: false } }
+      ]
+    })
       .populate("userId", "name avatar")
       .sort({ date: -1 });
 
@@ -59,10 +65,10 @@ export const getAllMemories = async (req, res) => {
 // Get memory by ID
 export const getMemoryById = async (req, res) => {
   try {
-    const memory = await Memory.findById(req.params.id).populate(
-      "userId",
-      "name avatar"
-    );
+    const memory = await Memory.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    }).populate("userId", "name avatar");
 
     if (!memory) {
       return res.status(404).json({ message: "Memory not found" });
@@ -103,10 +109,14 @@ export const updateMemory = async (req, res) => {
       }
     }
 
-    const memory = await Memory.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const memory = await Memory.findOneAndUpdate(
+      { _id: req.params.id, portalCode: req.user.portalCode },
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!memory) {
       return res.status(404).json({ message: "Memory not found" });
@@ -124,7 +134,10 @@ export const updateMemory = async (req, res) => {
 // Delete a memory
 export const deleteMemory = async (req, res) => {
   try {
-    const memory = await Memory.findById(req.params.id);
+    const memory = await Memory.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
     if (!memory) {
       return res.status(404).json({ message: "Memory not found" });
     }

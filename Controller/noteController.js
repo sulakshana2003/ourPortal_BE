@@ -7,6 +7,7 @@ export const createNote = async (req, res) => {
 
     const note = await Note.create({
       userId: req.user.id,
+      portalCode: req.user.portalCode,
       title,
       content: content || "",
       color: color || "#fff5f5",
@@ -24,7 +25,12 @@ export const createNote = async (req, res) => {
 // Get all notes
 export const getAllNotes = async (req, res) => {
   try {
-    const notes = await Note.find()
+    const notes = await Note.find({ 
+      $or: [
+        { portalCode: req.user.portalCode },
+        { userId: req.user.id, portalCode: { $exists: false } }
+      ]
+    })
       .populate("userId", "name avatar")
       .sort({ pinned: -1, createdAt: -1 });
 
@@ -37,10 +43,10 @@ export const getAllNotes = async (req, res) => {
 // Get note by ID
 export const getNoteById = async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id).populate(
-      "userId",
-      "name avatar",
-    );
+    const note = await Note.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    }).populate("userId", "name avatar");
 
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
@@ -57,10 +63,10 @@ export const updateNote = async (req, res) => {
   try {
     const { title, content, color } = req.body;
 
-    const note = await Note.findByIdAndUpdate(
-      req.params.id,
+    const note = await Note.findOneAndUpdate(
+      { _id: req.params.id, portalCode: req.user.portalCode },
       { title, content, color },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
 
     if (!note) {
@@ -79,7 +85,10 @@ export const updateNote = async (req, res) => {
 // Toggle pin
 export const togglePin = async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
+    const note = await Note.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }
@@ -99,7 +108,10 @@ export const togglePin = async (req, res) => {
 // Delete a note
 export const deleteNote = async (req, res) => {
   try {
-    const note = await Note.findByIdAndDelete(req.params.id);
+    const note = await Note.findOneAndDelete({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }

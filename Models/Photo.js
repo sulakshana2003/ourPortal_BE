@@ -25,6 +25,11 @@ const photoSchema = new mongoose.Schema(
       ref: "Album",
       default: null,
     },
+    portalCode: {
+      type: String,
+      required: true,
+      index: true,
+    },
   },
   {
     timestamps: true,

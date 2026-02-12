@@ -23,6 +23,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    portalCode: {
+      type: String,
+      index: true,
+      sparse: true,
+    },
   },
   {
     timestamps: true,

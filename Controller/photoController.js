@@ -29,6 +29,7 @@ export const uploadPhoto = async (req, res) => {
     // Save to DB
     const photo = await Photo.create({
       userId: req.user.id,
+      portalCode: req.user.portalCode,
       url: publicUrl,
       caption: caption || "",
       tags: tags ? JSON.parse(tags) : [],
@@ -47,7 +48,12 @@ export const uploadPhoto = async (req, res) => {
 // Get all photos (both users see everything)
 export const getAllPhotos = async (req, res) => {
   try {
-    const photos = await Photo.find()
+    const photos = await Photo.find({ 
+      $or: [
+        { portalCode: req.user.portalCode },
+        { userId: req.user.id, portalCode: { $exists: false } }
+      ]
+    })
       .populate("userId", "name avatar")
       .sort({ createdAt: -1 });
 
@@ -60,10 +66,10 @@ export const getAllPhotos = async (req, res) => {
 // Get a single photo
 export const getPhotoById = async (req, res) => {
   try {
-    const photo = await Photo.findById(req.params.id).populate(
-      "userId",
-      "name avatar"
-    );
+    const photo = await Photo.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    }).populate("userId", "name avatar");
 
     if (!photo) {
       return res.status(404).json({ message: "Photo not found" });
@@ -78,7 +84,10 @@ export const getPhotoById = async (req, res) => {
 // Delete a photo
 export const deletePhoto = async (req, res) => {
   try {
-    const photo = await Photo.findById(req.params.id);
+    const photo = await Photo.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
     if (!photo) {
       return res.status(404).json({ message: "Photo not found" });
     }

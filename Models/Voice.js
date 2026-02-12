@@ -7,6 +7,11 @@ const voiceSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    portalCode: {
+      type: String,
+      required: true,
+      index: true,
+    },
     url: {
       type: String,
       required: [true, "Voice URL is required"],

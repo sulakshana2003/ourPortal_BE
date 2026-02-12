@@ -8,6 +8,7 @@ export const createAlbum = async (req, res) => {
 
     const album = await Album.create({
       userId: req.user.id,
+      portalCode: req.user.portalCode,
       title,
       description: description || "",
     });
@@ -24,7 +25,12 @@ export const createAlbum = async (req, res) => {
 // Get all albums
 export const getAllAlbums = async (req, res) => {
   try {
-    const albums = await Album.find()
+    const albums = await Album.find({ 
+      $or: [
+        { portalCode: req.user.portalCode },
+        { userId: req.user.id, portalCode: { $exists: false } }
+      ]
+    })
       .populate("userId", "name avatar")
       .sort({ createdAt: -1 });
 
@@ -37,10 +43,10 @@ export const getAllAlbums = async (req, res) => {
 // Get single album with its photos
 export const getAlbumById = async (req, res) => {
   try {
-    const album = await Album.findById(req.params.id).populate(
-      "userId",
-      "name avatar"
-    );
+    const album = await Album.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    }).populate("userId", "name avatar");
 
     if (!album) {
       return res.status(404).json({ message: "Album not found" });
@@ -59,13 +65,19 @@ export const getAlbumById = async (req, res) => {
 // Delete album (and optionally keep/delete photos? For now, keep photos but unlink)
 export const deleteAlbum = async (req, res) => {
   try {
-    const album = await Album.findById(req.params.id);
+    const album = await Album.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
     if (!album) {
       return res.status(404).json({ message: "Album not found" });
     }
 
-    // Unlink photos from this album
-    await Photo.updateMany({ albumId: req.params.id }, { albumId: null });
+    // Unlink photos from this album (only those in the same portal)
+    await Photo.updateMany(
+      { albumId: req.params.id, portalCode: req.user.portalCode },
+      { albumId: null }
+    );
 
     await Album.findByIdAndDelete(req.params.id);
     res.json({ message: "Album deleted 🗑️" });
