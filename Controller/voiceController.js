@@ -8,7 +8,12 @@ const BUCKET = process.env.SUPABASE_BUCKET;
 // Upload a voice note
 export const uploadVoice = async (req, res) => {
   try {
+    console.log("🎤 Upload Voice Request Received");
+    console.log("Body:", req.body);
+    console.log("File:", req.file);
+
     if (!req.file) {
+      console.log("❌ No file received in request");
       return res.status(400).json({ message: "No audio file uploaded" });
     }
 

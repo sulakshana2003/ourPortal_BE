@@ -20,6 +20,11 @@ const photoSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    albumId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Album",
+      default: null,
+    },
   },
   {
     timestamps: true,

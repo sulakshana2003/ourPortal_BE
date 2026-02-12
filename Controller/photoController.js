@@ -12,7 +12,7 @@ export const uploadPhoto = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const { caption, tags } = req.body;
+    const { caption, tags, albumId } = req.body;
     const file = req.file;
 
     // Create unique file path
@@ -32,6 +32,7 @@ export const uploadPhoto = async (req, res) => {
       url: publicUrl,
       caption: caption || "",
       tags: tags ? JSON.parse(tags) : [],
+      albumId: albumId || null,
     });
 
     res.status(201).json({

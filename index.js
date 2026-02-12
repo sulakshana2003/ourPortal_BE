@@ -9,6 +9,7 @@ import photoRoutes from "./Routes/photoRoutes.js";
 import noteRoutes from "./Routes/noteRoutes.js";
 import memoryRoutes from "./Routes/memoryRoutes.js";
 import voiceRoutes from "./Routes/voiceRoutes.js";
+import albumRoutes from "./Routes/albumRoutes.js";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use("/api/photos", photoRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/memories", memoryRoutes);
 app.use("/api/voices", voiceRoutes);
+app.use("/api/albums", albumRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
