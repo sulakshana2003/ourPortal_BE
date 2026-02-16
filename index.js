@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import https from "https";
 import connectDB from "./Models/index.js";
 
 // Route imports
@@ -37,8 +38,14 @@ app.get("/", (req, res) => {
       notes: "/api/notes",
       memories: "/api/memories",
       voices: "/api/voices",
+      ping: "/api/ping",
     },
   });
+});
+
+// Ping endpoint for keep-alive
+app.get("/api/ping", (req, res) => {
+  res.status(200).json({ message: "pong", timestamp: new Date().toISOString() });
 });
 
 // API Routes
@@ -57,4 +64,19 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`💕 Love Portal server running on port ${PORT}`);
+
+  // Keep-alive mechanism for Render
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+  if (RENDER_URL) {
+    console.log(`🚀 Keep-alive active. Target: ${RENDER_URL}/api/ping`);
+    setInterval(() => {
+      https.get(`${RENDER_URL}/api/ping`, (res) => {
+        console.log(`💓 Keep-alive ping sent: Status ${res.statusCode}`);
+      }).on("error", (err) => {
+        console.error("💔 Keep-alive ping failed:", err.message);
+      });
+    }, 10 * 60 * 1000); // 10 minutes
+  } else {
+    console.log("ℹ️ RENDER_EXTERNAL_URL not found. Keep-alive disabled.");
+  }
 });
