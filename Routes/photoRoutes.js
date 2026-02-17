@@ -5,6 +5,7 @@ import {
   getAllPhotos,
   getPhotoById,
   deletePhoto,
+  updatePhoto,
 } from "../Controller/photoController.js";
 import { authenticate } from "../Middleware/auth.js";
 
@@ -16,6 +17,7 @@ router.use(authenticate);
 router.post("/", upload.single("photo"), uploadPhoto);
 router.get("/", getAllPhotos);
 router.get("/:id", getPhotoById);
+router.put("/:id", updatePhoto);
 router.delete("/:id", deletePhoto);
 
 export default router;

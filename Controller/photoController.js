@@ -105,3 +105,28 @@ export const deletePhoto = async (req, res) => {
     res.status(500).json({ message: "Delete failed", error: error.message });
   }
 };
+
+// Update a photo (caption, tags)
+export const updatePhoto = async (req, res) => {
+  try {
+    const { caption, tags } = req.body;
+    const photo = await Photo.findOne({
+      _id: req.params.id,
+      portalCode: req.user.portalCode,
+    });
+
+    if (!photo) {
+      return res.status(404).json({ message: "Photo not found" });
+    }
+
+    if (caption !== undefined) photo.caption = caption;
+    if (tags !== undefined) photo.tags = tags;
+
+    await photo.save();
+
+    const updated = await Photo.findById(photo._id).populate("userId", "name avatar");
+    res.json({ message: "Photo updated! ✏️💕", photo: updated });
+  } catch (error) {
+    res.status(500).json({ message: "Update failed", error: error.message });
+  }
+};
